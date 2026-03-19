@@ -133,9 +133,24 @@ def call_openai_api(messages):
         traceback.print_exc()
         return None
 
+def is_coding_question(message):
+    """Detect if message is a coding-related question"""
+    coding_keywords = [
+        'code', 'write', 'function', 'class', 'react', 'javascript', 
+        'python', 'java', 'component', 'api', 'debug', 'fix', 'error', 
+        'bug', 'html', 'css', 'sql', 'database', 'algorithm', 'loop',
+        'variable', 'array', 'object', 'method', 'syntax', 'import',
+        'export', 'module', 'library', 'framework', 'typescript', 'jsx',
+        'node', 'express', 'django', 'flask', 'database', 'query'
+    ]
+    message_lower = message.lower()
+    return any(keyword in message_lower for keyword in coding_keywords)
+
 def route_message(user_message, messages, model_override='auto'):
     """
     Route message to appropriate model and get response
+    Optimized to minimize OpenAI API calls (free plan quota)
+    
     Returns: (content, model_used, response_time)
     """
     start_time = time.time()
@@ -144,19 +159,19 @@ def route_message(user_message, messages, model_override='auto'):
     use_openai = False
     
     if model_override == 'auto':
-        # Auto rotate: detect if it's a coding question
-        coding_keywords = ['code', 'write', 'function', 'class', 'react', 'javascript', 'python', 'java', 'component', 'api', 'debug', 'fix', 'error', 'bug', 'html', 'css', 'sql', 'database']
-        is_coding = any(keyword in user_message.lower() for keyword in coding_keywords)
+        # Auto rotate: ONLY use OpenAI for coding questions to save quota
+        is_coding = is_coding_question(user_message)
         use_openai = is_coding
         print(f"[ROUTER] Auto Rotate - Is coding: {is_coding}")
+        print(f"[ROUTER] Using OpenAI: {use_openai} (to minimize free plan quota usage)")
     elif model_override == 'openai':
         # Force OpenAI
         use_openai = True
         print(f"[ROUTER] Forced OpenAI")
     else:
-        # Force Gemini (default)
+        # Force Gemini (default) - saves OpenAI quota
         use_openai = False
-        print(f"[ROUTER] Forced Gemini")
+        print(f"[ROUTER] Forced Gemini (saves OpenAI quota)")
     
     # Prepare messages for API
     api_messages = messages + [{'role': 'user', 'content': user_message}]
@@ -166,14 +181,17 @@ def route_message(user_message, messages, model_override='auto'):
     model_used = 'gemini'
     
     if use_openai:
-        print(f"[ROUTER] Attempting to use OpenAI for coding")
+        print(f"[ROUTER] Attempting to use OpenAI for coding question")
         content = call_openai_api(api_messages)
         if content:
             model_used = 'openai'
+            print(f"[ROUTER] OpenAI succeeded")
+        else:
+            print(f"[ROUTER] OpenAI failed, falling back to Gemini")
     
     # Fallback to Gemini if OpenAI fails or not coding
     if not content:
-        print(f"[ROUTER] Using Gemini")
+        print(f"[ROUTER] Using Gemini (reliable, no quota limits)")
         content = call_gemini_api(api_messages)
         model_used = 'gemini'
     
