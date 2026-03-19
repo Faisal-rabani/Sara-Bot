@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { X, Copy, Check } from 'lucide-react'
+import { X } from 'lucide-react'
 
 export default function CompareModal( { isOpen, onClose, onCompare } ) {
     const [prompt, setPrompt] = useState( '' )
@@ -7,63 +7,6 @@ export default function CompareModal( { isOpen, onClose, onCompare } ) {
     const [model2, setModel2] = useState( 'openai' )
     const [isLoading, setIsLoading] = useState( false )
     const [results, setResults] = useState( null )
-    const [copiedCode, setCopiedCode] = useState( null )
-
-    const copyToClipboard = ( code, id ) => {
-        navigator.clipboard.writeText( code )
-        setCopiedCode( id )
-        setTimeout( () => setCopiedCode( null ), 2000 )
-    }
-
-    const renderContent = ( content ) => {
-        if ( !content ) return <p className="text-gray-100">No content</p>
-
-        const parts = content.split( /```(\w+)?\n([\s\S]*?)```/g )
-
-        return parts.map( ( part, idx ) => {
-            if ( idx % 3 === 0 ) {
-                // Text content
-                return part ? (
-                    <p key={idx} className="text-gray-100 whitespace-pre-wrap mb-2">
-                        {part}
-                    </p>
-                ) : null
-            } else if ( idx % 3 === 1 ) {
-                // Language
-                const language = part || 'text'
-                const code = parts[idx + 1]
-                const codeId = `compare-code-${idx}`
-
-                return (
-                    <div key={idx} className="code-block my-3">
-                        <div className="flex items-center justify-between bg-dark-800 px-4 py-2 border-b border-dark-700">
-                            <span className="text-xs text-gray-400">{language}</span>
-                            <button
-                                onClick={() => copyToClipboard( code, codeId )}
-                                className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
-                            >
-                                {copiedCode === codeId ? (
-                                    <>
-                                        <Check size={14} />
-                                        Copied
-                                    </>
-                                ) : (
-                                    <>
-                                        <Copy size={14} />
-                                        Copy
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                        <pre className="text-sm text-gray-100 overflow-x-auto p-4 bg-black">
-                            <code>{code}</code>
-                        </pre>
-                    </div>
-                )
-            }
-            return null
-        } )
-    }
 
     const handleCompare = async ( e ) => {
         e.preventDefault()
@@ -208,21 +151,17 @@ export default function CompareModal( { isOpen, onClose, onCompare } ) {
                         </form>
                     ) : (
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-dark-800 rounded-lg p-4 max-h-80 overflow-y-auto">
-                                <h3 className="font-semibold text-blue-400 mb-3">
+                            <div className="bg-dark-800 rounded-lg p-4">
+                                <h3 className="font-semibold text-blue-400 mb-2">
                                     {model1 === 'gemini' ? '✨ Gemini' : '🤖 ChatGPT'}
                                 </h3>
-                                <div className="text-sm text-gray-100">
-                                    {renderContent( results.model1 )}
-                                </div>
+                                <p className="text-sm text-gray-100 whitespace-pre-wrap">{results.model1}</p>
                             </div>
-                            <div className="bg-dark-800 rounded-lg p-4 max-h-80 overflow-y-auto">
-                                <h3 className="font-semibold text-purple-400 mb-3">
+                            <div className="bg-dark-800 rounded-lg p-4">
+                                <h3 className="font-semibold text-purple-400 mb-2">
                                     {model2 === 'gemini' ? '✨ Gemini' : '🤖 ChatGPT'}
                                 </h3>
-                                <div className="text-sm text-gray-100">
-                                    {renderContent( results.model2 )}
-                                </div>
+                                <p className="text-sm text-gray-100 whitespace-pre-wrap">{results.model2}</p>
                             </div>
                         </div>
                     )}
