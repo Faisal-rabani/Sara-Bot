@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-dark-950 text-gray-100 font-sans;
+}
+
+/* Syntax highlighting for code blocks */
+.code-block {
+  @apply bg-dark-900 rounded-lg overflow-hidden border border-dark-700;
+}
+
+.code-block pre {
+  @apply p-4 overflow-x-auto;
+}
+
+.code-block code {
+  @apply text-sm font-mono;
+}
+
+/* Typing animation */
+@keyframes typing {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.typing-indicator {
+  animation: typing 1.4s infinite;
+}
+
+/* Thinking indicator */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.thinking-indicator {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-dark-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-dark-500;
+}
