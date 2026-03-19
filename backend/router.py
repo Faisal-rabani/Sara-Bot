@@ -123,6 +123,9 @@ def call_openai_api(messages):
                 content = data['choices'][0].get('message', {}).get('content', '')
                 print(f"[OPENAI] Got content: {content[:100]}")
                 return content
+        elif response.status_code == 429:
+            print(f"[OPENAI] Quota exceeded - free plan limit reached")
+            return None
         else:
             print(f"[OPENAI] Error {response.status_code}: {response.text}")
             return None
@@ -149,7 +152,6 @@ def is_coding_question(message):
 def route_message(user_message, messages, model_override='auto'):
     """
     Route message to appropriate model and get response
-    Optimized to minimize OpenAI API calls (free plan quota)
     
     Returns: (content, model_used, response_time)
     """
@@ -159,19 +161,18 @@ def route_message(user_message, messages, model_override='auto'):
     use_openai = False
     
     if model_override == 'auto':
-        # Auto rotate: ONLY use OpenAI for coding questions to save quota
+        # Auto rotate: detect if it's a coding question
         is_coding = is_coding_question(user_message)
         use_openai = is_coding
         print(f"[ROUTER] Auto Rotate - Is coding: {is_coding}")
-        print(f"[ROUTER] Using OpenAI: {use_openai} (to minimize free plan quota usage)")
     elif model_override == 'openai':
         # Force OpenAI
         use_openai = True
         print(f"[ROUTER] Forced OpenAI")
     else:
-        # Force Gemini (default) - saves OpenAI quota
+        # Force Gemini (default)
         use_openai = False
-        print(f"[ROUTER] Forced Gemini (saves OpenAI quota)")
+        print(f"[ROUTER] Forced Gemini")
     
     # Prepare messages for API
     api_messages = messages + [{'role': 'user', 'content': user_message}]
@@ -181,17 +182,17 @@ def route_message(user_message, messages, model_override='auto'):
     model_used = 'gemini'
     
     if use_openai:
-        print(f"[ROUTER] Attempting to use OpenAI for coding question")
+        print(f"[ROUTER] Attempting to use OpenAI for coding")
         content = call_openai_api(api_messages)
         if content:
             model_used = 'openai'
             print(f"[ROUTER] OpenAI succeeded")
         else:
-            print(f"[ROUTER] OpenAI failed, falling back to Gemini")
+            print(f"[ROUTER] OpenAI failed or quota exceeded, falling back to Gemini")
     
     # Fallback to Gemini if OpenAI fails or not coding
     if not content:
-        print(f"[ROUTER] Using Gemini (reliable, no quota limits)")
+        print(f"[ROUTER] Using Gemini")
         content = call_gemini_api(api_messages)
         model_used = 'gemini'
     

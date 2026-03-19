@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Copy, Check } from 'lucide-react'
 
 export default function CompareModal( { isOpen, onClose, onCompare } ) {
     const [prompt, setPrompt] = useState( '' )
@@ -7,6 +7,63 @@ export default function CompareModal( { isOpen, onClose, onCompare } ) {
     const [model2, setModel2] = useState( 'openai' )
     const [isLoading, setIsLoading] = useState( false )
     const [results, setResults] = useState( null )
+    const [copiedCode, setCopiedCode] = useState( null )
+
+    const copyToClipboard = ( code, id ) => {
+        navigator.clipboard.writeText( code )
+        setCopiedCode( id )
+        setTimeout( () => setCopiedCode( null ), 2000 )
+    }
+
+    const renderContent = ( content ) => {
+        if ( !content ) return <p className="text-gray-100">No content</p>
+
+        const parts = content.split( /```(\w+)?\n([\s\S]*?)```/g )
+
+        return parts.map( ( part, idx ) => {
+            if ( idx % 3 === 0 ) {
+                // Text content
+                return part ? (
+                    <p key={idx} className="text-gray-100 whitespace-pre-wrap mb-2">
+                        {part}
+                    </p>
+                ) : null
+            } else if ( idx % 3 === 1 ) {
+                // Language
+                const language = part || 'text'
+                const code = parts[idx + 1]
+                const codeId = `compare-code-${idx}`
+
+                return (
+                    <div key={idx} className="code-block my-3">
+                        <div className="flex items-center justify-between bg-black px-4 py-2 border-b border-dark-700">
+                            <span className="text-xs text-gray-400 font-mono">{language}</span>
+                            <button
+                                onClick={() => copyToClipboard( code, codeId )}
+                                className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
+                            >
+                                {copiedCode === codeId ? (
+                                    <>
+                                        <Check size={14} />
+                                        Copied
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy size={14} />
+                                        Copy
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                        <pre className="text-sm text-gray-100 overflow-x-auto p-4 bg-black border border-dark-700 rounded-b">
+                            <code className="font-mono">{code}</code>
+                        </pre>
+                    </div>
+                )
+            }
+            return null
+        } )
+    }
 
     const handleCompare = async ( e ) => {
         e.preventDefault()
@@ -82,7 +139,7 @@ export default function CompareModal( { isOpen, onClose, onCompare } ) {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-dark-900 rounded-lg w-full max-w-4xl max-h-96 flex flex-col border border-dark-700">
+            <div className="bg-dark-900 rounded-lg w-full max-w-6xl max-h-[80vh] flex flex-col border border-dark-700">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-dark-700">
                     <h2 className="text-xl font-bold text-white">Compare Models</h2>
@@ -105,9 +162,9 @@ export default function CompareModal( { isOpen, onClose, onCompare } ) {
                                 <textarea
                                     value={prompt}
                                     onChange={( e ) => setPrompt( e.target.value )}
-                                    placeholder="Enter a prompt to compare..."
+                                    placeholder="Enter a coding question to compare..."
                                     className="w-full bg-dark-800 border border-dark-700 text-gray-100 rounded-lg p-3 focus:outline-none focus:border-blue-500"
-                                    rows="3"
+                                    rows="4"
                                 />
                             </div>
 
@@ -151,17 +208,21 @@ export default function CompareModal( { isOpen, onClose, onCompare } ) {
                         </form>
                     ) : (
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-dark-800 rounded-lg p-4">
-                                <h3 className="font-semibold text-blue-400 mb-2">
+                            <div className="bg-dark-800 rounded-lg p-4 max-h-[60vh] overflow-y-auto border border-dark-700">
+                                <h3 className="font-semibold text-blue-400 mb-3 text-lg">
                                     {model1 === 'gemini' ? '✨ Gemini' : '🤖 ChatGPT'}
                                 </h3>
-                                <p className="text-sm text-gray-100 whitespace-pre-wrap">{results.model1}</p>
+                                <div className="text-sm text-gray-100">
+                                    {renderContent( results.model1 )}
+                                </div>
                             </div>
-                            <div className="bg-dark-800 rounded-lg p-4">
-                                <h3 className="font-semibold text-purple-400 mb-2">
+                            <div className="bg-dark-800 rounded-lg p-4 max-h-[60vh] overflow-y-auto border border-dark-700">
+                                <h3 className="font-semibold text-purple-400 mb-3 text-lg">
                                     {model2 === 'gemini' ? '✨ Gemini' : '🤖 ChatGPT'}
                                 </h3>
-                                <p className="text-sm text-gray-100 whitespace-pre-wrap">{results.model2}</p>
+                                <div className="text-sm text-gray-100">
+                                    {renderContent( results.model2 )}
+                                </div>
                             </div>
                         </div>
                     )}

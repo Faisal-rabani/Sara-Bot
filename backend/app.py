@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import time
 
 # Import routing and math functions
-from router import route_message, call_gemini_api, call_openai_api, is_coding_question
+from router import route_message, call_gemini_api, call_openai_api
 from math_engine import is_math_expression, calculate_math
 
 # Load environment variables
@@ -63,9 +63,12 @@ def chat():
                     error_msg = "Sorry, I couldn't get a response from the API. Please try again."
                     yield f"data: {json.dumps({'type': 'content', 'data': error_msg})}\n\n"
                 
+                # Format model name for display
+                model_display = 'ChatGPT' if model_used == 'openai' else 'Gemini'
+                
                 metadata = {
                     'type': 'metadata',
-                    'model': '',
+                    'model': model_display,
                     'task_type': '',
                     'response_time': response_time,
                     'token_count': len(content.split()) if content else 0
@@ -107,10 +110,6 @@ def compare():
         if not prompt:
             return jsonify({'error': 'No prompt provided'}), 400
         
-        # Check if it's a coding question
-        is_coding = is_coding_question(prompt)
-        print(f"[COMPARE] Is coding question: {is_coding}")
-        
         def generate():
             """Generator for comparison"""
             messages = [{'role': 'user', 'content': prompt}]
@@ -136,13 +135,7 @@ def compare():
             yield f"data: {json.dumps({'type': 'model2_start'})}\n\n"
             
             if model2 == 'openai':
-                # Only call OpenAI if it's a coding question (to save free plan quota)
-                if is_coding:
-                    print(f"[COMPARE] Coding question detected - calling OpenAI")
-                    content2 = call_openai_api(messages)
-                else:
-                    print(f"[COMPARE] Non-coding question - using Gemini to save OpenAI quota")
-                    content2 = call_gemini_api(messages)
+                content2 = call_openai_api(messages)
             else:
                 content2 = call_gemini_api(messages)
             
