@@ -153,25 +153,31 @@ def route_message(user_message, messages, model_override='auto'):
     """
     Route message to appropriate model and get response
     
-    Returns: (content, model_used, response_time)
+    Returns: (content, model_used, response_time, model_requested)
+    model_requested = what user asked for (for display)
+    model_used = what actually worked (for fallback)
     """
     start_time = time.time()
     
     # Determine which model to use
     use_openai = False
+    model_requested = 'gemini'  # What user asked for (for display)
     
     if model_override == 'auto':
         # Auto rotate: detect if it's a coding question
         is_coding = is_coding_question(user_message)
         use_openai = is_coding
+        model_requested = 'openai' if is_coding else 'gemini'
         print(f"[ROUTER] Auto Rotate - Is coding: {is_coding}")
     elif model_override == 'openai':
         # Force OpenAI
         use_openai = True
+        model_requested = 'openai'
         print(f"[ROUTER] Forced OpenAI")
     else:
         # Force Gemini (default)
         use_openai = False
+        model_requested = 'gemini'
         print(f"[ROUTER] Forced Gemini")
     
     # Prepare messages for API
@@ -182,13 +188,14 @@ def route_message(user_message, messages, model_override='auto'):
     model_used = 'gemini'
     
     if use_openai:
-        print(f"[ROUTER] Attempting to use OpenAI for coding")
+        print(f"[ROUTER] Attempting to use OpenAI")
         content = call_openai_api(api_messages)
         if content:
             model_used = 'openai'
             print(f"[ROUTER] OpenAI succeeded")
         else:
-            print(f"[ROUTER] OpenAI failed or quota exceeded, falling back to Gemini")
+            print(f"[ROUTER] OpenAI failed, falling back to Gemini")
+            model_used = 'gemini'
     
     # Fallback to Gemini if OpenAI fails or not coding
     if not content:
@@ -198,4 +205,5 @@ def route_message(user_message, messages, model_override='auto'):
     
     elapsed_time = int((time.time() - start_time) * 1000)
     
-    return content, model_used, elapsed_time
+    # Return: content, actual model used, response time, requested model (for display)
+    return content, model_used, elapsed_time, model_requested

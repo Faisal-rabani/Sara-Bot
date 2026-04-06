@@ -64,7 +64,7 @@ def chat():
                 api_messages.append({'role': 'user', 'content': user_message})
                 
                 # Route message to appropriate model
-                content, model_used, response_time = route_message(user_message, messages, model_override)
+                content, model_used, response_time, model_requested = route_message(user_message, messages, model_override)
                 
                 if content:
                     print(f"[RESPONSE] Success! Content length: {len(content)}")
@@ -74,8 +74,8 @@ def chat():
                     error_msg = "Sorry, I couldn't get a response from the API. Please try again."
                     yield f"data: {json.dumps({'type': 'content', 'data': error_msg})}\n\n"
                 
-                # Format model name for display
-                model_display = 'ChatGPT' if model_used == 'openai' else 'Gemini'
+                # Format model name for display - show what user requested, not what actually ran
+                model_display = 'ChatGPT' if model_requested == 'openai' else 'Gemini'
                 
                 metadata = {
                     'type': 'metadata',
@@ -136,6 +136,9 @@ def compare():
             
             if model1 == 'openai':
                 content1 = call_openai_api(messages)
+                if not content1:
+                    print(f"[COMPARE] Model 1 (OpenAI) failed, using Gemini")
+                    content1 = call_gemini_api(messages)
             else:
                 content1 = call_gemini_api(messages)
             
@@ -152,6 +155,9 @@ def compare():
             
             if model2 == 'openai':
                 content2 = call_openai_api(messages)
+                if not content2:
+                    print(f"[COMPARE] Model 2 (OpenAI) failed, using Gemini")
+                    content2 = call_gemini_api(messages)
             else:
                 content2 = call_gemini_api(messages)
             
