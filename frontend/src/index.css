@@ -169,6 +169,43 @@ body {
   .font-space {
     font-family: 'Space Mono', monospace;
   }
+  .font-monoton {
+    font-family: 'Monoton', cursive;
+  }
+  .font-syncopate {
+    font-family: 'Syncopate', sans-serif;
+  }
+
+  /* Glassmorphism Shine Hover Effect */
+  .glass-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .glass-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent
+    );
+    transform: skewX(-20deg);
+    transition: none;
+  }
+  .glass-shine:hover::before {
+    animation: shine 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+}
+
+@keyframes shine {
+  100% {
+    left: 200%;
+  }
 }
 
 @theme inline {
@@ -179,5 +216,21 @@ body {
   50% {
     transform: translate(-50%, -50%) scale(0.9);
     }
+  }
+
+  @keyframes draw-line {
+    from { stroke-dashoffset: 100; }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes bijli {
+    0% { opacity: 1; }
+    5% { opacity: 0.5; }
+    10% { opacity: 1; }
+    15% { opacity: 0.3; }
+    20% { opacity: 1; }
+    50% { opacity: 0.8; }
+    60% { opacity: 0.4; }
+    70% { opacity: 1; }
+    100% { opacity: 1; }
   }
 }

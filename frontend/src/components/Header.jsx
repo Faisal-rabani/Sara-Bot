@@ -2,7 +2,7 @@ import React from 'react'
 import { Menu } from 'lucide-react'
 import logoImage from '../assets/logo.png'
 
-export default function Header( { onCompareModels, onToggleSidebar } ) {
+export default function Header( { onCompareModels, onToggleSidebar, isAuthenticated, onOpenLogin, onOpenSignup } ) {
     return (
         <div className="bg-[#0A0A0A] border-b border-neutral-800/50 px-6 py-4 flex items-center justify-between z-10 relative">
             {/* Left Section: Menu & Logo */}
@@ -24,14 +24,31 @@ export default function Header( { onCompareModels, onToggleSidebar } ) {
                 <p className="text-[9px] uppercase tracking-[0.2em] text-neutral-500 font-medium mt-0.5">Vibe Agent</p>
             </div>
 
-            {/* Right Section: Compare */}
-            <div className="z-10">
+            {/* Right Section: Compare & Auth */}
+            <div className="z-10 flex items-center gap-3">
                 <button
                     onClick={onCompareModels}
-                    className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 rounded text-xs font-medium transition"
+                    className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800 rounded text-xs font-medium transition hidden sm:block"
                 >
                     Compare Models
                 </button>
+                
+                {!isAuthenticated && (
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={onOpenLogin}
+                            className="hidden sm:block px-3 py-1.5 text-neutral-300 hover:text-white hover:bg-neutral-900 rounded text-xs font-medium transition"
+                        >
+                            Log in
+                        </button>
+                        <button
+                            onClick={onOpenSignup}
+                            className="px-3 py-1 sm:px-3 sm:py-1.5 bg-white hover:bg-neutral-200 text-black rounded text-[10px] sm:text-xs font-medium transition"
+                        >
+                            Sign Up
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     )

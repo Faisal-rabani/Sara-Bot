@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Send, ChevronDown, RefreshCw } from 'lucide-react'
 import { GeminiLogo, ChatGPTLogo } from './Logos'
 
-export default function InputArea( { onSendMessage, isLoading, modelOverride, onModelChange } ) {
+export default function InputArea( { onSendMessage, isLoading, modelOverride, onModelChange, isAuthenticated } ) {
     const [input, setInput] = useState( '' )
     const [showModelMenu, setShowModelMenu] = useState( false )
 
@@ -81,13 +81,13 @@ export default function InputArea( { onSendMessage, isLoading, modelOverride, on
                         value={input}
                         onChange={( e ) => setInput( e.target.value )}
                         onKeyDown={handleKeyDown}
-                        placeholder="Message Sara..."
+                        placeholder={isAuthenticated ? "Message Sara..." : "Ask Sara..."}
                         className="flex-1 bg-transparent text-neutral-100 placeholder-neutral-500 p-3 focus:outline-none text-sm h-12"
                     />
                     <button
                         type="submit"
                         disabled={isLoading || !input.trim()}
-                        className="w-10 h-10 mr-1 bg-white hover:bg-gray-200 disabled:bg-neutral-800 disabled:text-neutral-600 text-black rounded-full transition flex items-center justify-center flex-shrink-0"
+                        className="w-10 h-10 mr-1 glass-shine bg-white hover:bg-gray-200 disabled:bg-neutral-800 disabled:text-neutral-600 text-black rounded-full transition flex items-center justify-center flex-shrink-0"
                     >
                         <Send size={20} />
                     </button>

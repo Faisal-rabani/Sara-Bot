@@ -12,6 +12,46 @@ export default function Message( { message } ) {
         setTimeout( () => setCopiedCode( null ), 2000 )
     }
 
+    const parseText = (text) => {
+        if (!text) return null;
+        
+        const lines = text.split('\n');
+        return lines.map((line, i) => {
+            if (line.trim() === '') return <br key={i} />;
+            
+            const isBullet = line.trim().startsWith('- ');
+            let parsedLine = isBullet ? line.replace(/^\s*-\s*/, '') : line;
+            
+            const boldParts = parsedLine.split(/(\*\*.*?\*\*)/g);
+            const lineContent = boldParts.map((part, j) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={j} className="font-bold text-white">{part.slice(2, -2)}</strong>;
+                }
+                const codeParts = part.split(/(`.*?`)/g);
+                return codeParts.map((codePart, k) => {
+                    if (codePart.startsWith('`') && codePart.endsWith('`')) {
+                        return <code key={`${j}-${k}`} className="px-1.5 py-0.5 mx-0.5 bg-neutral-800 border border-neutral-700 rounded text-orange-400 text-sm font-mono">{codePart.slice(1, -1)}</code>;
+                    }
+                    return codePart;
+                });
+            });
+
+            if (isBullet) {
+                return (
+                    <div key={i} className="flex gap-2 text-gray-100 my-1.5 ml-2">
+                        <span className="text-orange-500 mt-1 flex-shrink-0">•</span>
+                        <span>{lineContent}</span>
+                    </div>
+                );
+            }
+            return (
+                <p key={i} className="text-gray-100 mb-2 leading-relaxed">
+                    {lineContent}
+                </p>
+            );
+        });
+    }
+
     const renderContent = ( content ) => {
         if ( !content ) return null
 
@@ -19,14 +59,8 @@ export default function Message( { message } ) {
 
         return parts.map( ( part, idx ) => {
             if ( idx % 3 === 0 ) {
-                // Text content
-                return part ? (
-                    <p key={idx} className="text-gray-100 whitespace-pre-wrap mb-2">
-                        {part}
-                    </p>
-                ) : null
+                return part ? <div key={idx}>{parseText(part)}</div> : null
             } else if ( idx % 3 === 1 ) {
-                // Language
                 const language = part || 'text'
                 const code = parts[idx + 1]
                 const codeId = `code-${idx}`
@@ -40,19 +74,13 @@ export default function Message( { message } ) {
                                 className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
                             >
                                 {copiedCode === codeId ? (
-                                    <>
-                                        <Check size={14} />
-                                        Copied
-                                    </>
+                                    <><Check size={14} />Copied</>
                                 ) : (
-                                    <>
-                                        <Copy size={14} />
-                                        Copy
-                                    </>
+                                    <><Copy size={14} />Copy</>
                                 )}
                             </button>
                         </div>
-                        <pre className="text-sm text-gray-100 overflow-x-auto p-4">
+                        <pre className="text-sm text-gray-100 overflow-x-auto p-4 m-0 font-mono">
                             <code>{code}</code>
                         </pre>
                     </div>

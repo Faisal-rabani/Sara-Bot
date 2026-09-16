@@ -1,27 +1,37 @@
 import React from 'react'
-import { Plus, Trash2, Download } from 'lucide-react'
+import { Plus, Trash2, Download, LogOut, X } from 'lucide-react'
 
-export default function Sidebar( { isOpen, sessions, activeSessionId, onSelectSession, onNewChat, onDeleteSession, onExport, onOpenAbout } ) {
+export default function Sidebar( { isOpen, onClose, sessions, activeSessionId, onSelectSession, onNewChat, onDeleteSession, onExport, onOpenAbout, user, onLogout, isAuthenticated, onOpenLogin } ) {
     return (
         <div 
-            className={`flex flex-col h-screen bg-[#0A0A0A] border-r border-neutral-800/50 transition-all duration-300 ease-in-out z-20 ${
+            className={`flex flex-col h-screen bg-[#0A0A0A] border-r border-neutral-800/50 transition-all duration-300 ease-in-out z-50 absolute md:relative ${
                 isOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full overflow-hidden border-r-0'
             }`}
         >
             {/* Header */}
-            <div className="p-4 border-b border-neutral-800/50">
+            <div className="p-4 border-b border-neutral-800/50 flex items-center justify-between gap-2">
                 <button
                     onClick={onNewChat}
-                    className="w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 py-2 px-4 rounded transition text-sm font-medium"
+                    className="flex-1 flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 py-2 px-4 rounded transition text-sm font-medium"
                 >
                     <Plus size={16} />
                     New Chat
+                </button>
+                <button 
+                    onClick={onClose}
+                    className="md:hidden p-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded transition"
+                >
+                    <X size={20} />
                 </button>
             </div>
 
             {/* Sessions List */}
             <div className="flex-1 overflow-y-auto">
-                {sessions.length === 0 ? (
+                {!isAuthenticated ? (
+                    <div className="p-4 text-center flex flex-col items-center justify-center h-full opacity-50">
+                        <p className="text-xs text-neutral-500 mb-2">Sign in to save and view your chat history.</p>
+                    </div>
+                ) : sessions.length === 0 ? (
                     <div className="p-4 text-center text-gray-500 text-sm">
                         No chat sessions yet
                     </div>
@@ -73,6 +83,47 @@ export default function Sidebar( { isOpen, sessions, activeSessionId, onSelectSe
                     </div>
                 )}
             </div>
+
+            {/* User Profile or Login CTA */}
+            {isAuthenticated && user ? (
+                <div className="p-4 border-t border-neutral-800/50 flex items-center justify-between">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-8 h-8 rounded-full bg-neutral-800 flex-shrink-0 overflow-hidden">
+                            {user.avatar ? (
+                                <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-sm">
+                                    {user.name?.charAt(0) || 'U'}
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex flex-col truncate">
+                            <span className="text-sm font-medium text-white truncate">{user.name}</span>
+                            <span className="text-xs text-neutral-500 truncate">{user.role}</span>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onLogout}
+                        className="p-2 text-neutral-500 hover:text-red-400 transition-colors rounded-md hover:bg-neutral-900 flex-shrink-0"
+                        title="Log out"
+                    >
+                        <LogOut size={16} />
+                    </button>
+                </div>
+            ) : (
+                <div className="p-4 border-t border-neutral-800/50 flex flex-col gap-2">
+                    <h3 className="text-sm font-bold text-white">Get responses tailored to you</h3>
+                    <p className="text-xs text-neutral-400 mb-1">
+                        Log in to get answers based on saved chats, plus create images and upload files.
+                    </p>
+                    <button 
+                        onClick={onOpenLogin}
+                        className="w-full glass-shine bg-white hover:bg-neutral-200 text-black py-2 rounded-lg text-sm font-medium transition"
+                    >
+                        Log in
+                    </button>
+                </div>
+            )}
 
             {/* Footer */}
             <div 
