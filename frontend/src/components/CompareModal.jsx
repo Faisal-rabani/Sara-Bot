@@ -74,7 +74,8 @@ export default function CompareModal( { isOpen, onClose, onCompare } ) {
         setResults( null )
 
         try {
-            const response = await fetch( '/api/compare', {
+            const API_URL = import.meta.env.VITE_API_URL || '';
+            const response = await fetch( `${API_URL}/api/compare`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify( { prompt, model1, model2 } )

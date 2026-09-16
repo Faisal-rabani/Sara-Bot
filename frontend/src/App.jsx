@@ -58,7 +58,7 @@ export default function App() {
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const response = await fetch('http://localhost:5000/health')
+        const response = await fetch(`${import.meta.env.VITE_API_URL || ""}/health`)
         if (response.ok) {
           setIsBackendConnected(true)
           setShowBackendError(false)
@@ -172,7 +172,8 @@ export default function App() {
         content: m.content
       } ) )
 
-      const response = await fetch( '/api/chat', {
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      const response = await fetch( `${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify( {
